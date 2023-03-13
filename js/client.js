@@ -1,5 +1,5 @@
 //start the socket connection
-var socket = io();
+let socket = io();
 
 
 //Selection pseudo

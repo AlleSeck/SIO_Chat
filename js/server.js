@@ -32,7 +32,7 @@ io.on('connection',(socket)=>{
         socket.nickname = pseudo;
 });
     socket.on('emission_message',(message)=>{
-        socket.emit('reception_message', socket.nickname + message);
+        socket.emit('reception_message', socket.nickname + ' ' + message);
         console.log(message);
     });
      
