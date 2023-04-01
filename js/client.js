@@ -1,5 +1,5 @@
 //start the socket connection
-let socket = io();
+let socket = io('http://localhost:5555');
 
 
 //Selection pseudo
@@ -31,6 +31,8 @@ socket.on('reception_message', (contenu) => {
     console.log(contenu);
     storageMessages.push(contenu);
     localStorage.setItem('messages', JSON.stringify(storageMessages));
+    socket.emit('join', 'room1');
+
 
   var message = document.createElement('li');
   message.innerHTML = contenu;

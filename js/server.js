@@ -52,11 +52,13 @@ io.on('connection',(socket)=>{
 });
     socket.on('emission_message',(message)=>{
         socket.emit('reception_message', socket.nickname + ' : ' + message);
+        io.to('room1').emit('message', message);
+
         console.log(message);
     });
      
     socket.on('disconnect', ()=>{
-        console.log("A client has disconnected!");
+        console.log(pseudo + " has disconnected!");
     });
    
 });

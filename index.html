@@ -5,11 +5,18 @@
         <link rel="stylesheet" href="css/style.css">
     </head>
     <body>
+        <aside>
+            <ul id="tabs">
+                <li class="active" data-room="general">Général</li>
+            </ul>
+        </aside>
+    <main>
         <ul id="messages"></ul>
         <form id="form" action="">
             <input id="input" autocomplete="off"></input>
             <button id="button">Send</button>
         </form>
+    </main>
         <script src="socket.io/socket.io.js"></script>
         <script src="js/client.js"></script>
     </body>
