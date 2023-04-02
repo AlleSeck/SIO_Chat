@@ -27,9 +27,33 @@ app.use(express.urlencoded({extended:true})); // Prise en charge des formulaires
 */
 
 // Route page d'accueil
-app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, '..', 'index.html'));
+app.get('/salon', (req, res) => {
+    // On vérifie s'il y a bien une connexion
+    if(req.session.loggedin){
+        // Si oui, on charge la page du salon de discussion
+        res.sendFile(path.join(__dirname, '..', 'index.html'));
+    }else{
+        res.sendFile(path.join(__dirname, '..', '403.html'));
+        res.status(403);
+    }
 });
+
+// Route page de login
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, '..', 'login.html'));
+});
+
+// Route page register
+app.get('/register', (req, res) => {
+    res.sendFile(path.join(__dirname, '..', 'register.html'));
+});
+
+// Route page forgotPasswd
+app.get('/forgotPasswd', (req, res) => {
+    res.sendFile(path.join(__dirname, '..', 'forgotPasswd.html'));
+});
+
+
 //Route vers cilient
 app.get('/js/client.js', (req, res) => {
     res.sendFile(path.join(__dirname, '..', '/js/client.js'));
