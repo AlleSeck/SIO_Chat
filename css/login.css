@@ -1,0 +1,9 @@
+html {
+    margin: 0;
+    overflow: hidden;
+}
+
+input[type="email"]::placeholder {
+    background-color: red;
+}
+
