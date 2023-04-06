@@ -1,15 +1,11 @@
 body {
     margin: 0;
     padding-bottom: 3rem;
-    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
-    background-color: #fff;
-    font-family: Red hat Display, sans-serif;
-	font-weight: 400;
-	line-height: 1.25em;
-   }
+    font-family: -apple-system, BlinkMacSystemFont, "Segeo UI", Roboto, Helvetica, Arial, sans-serif;
+}
 
 #form {
-    background: rgba(red, green, blue, alpha);
+    background: rgba(0, 0, 0, 0.15);
     padding: 0.25rem;
     position: fixed;
     bottom: 0;
@@ -19,15 +15,16 @@ body {
     height: 3rem;
     box-sizing: border-box;
     backdrop-filter: blur(10px);
-    display: flex;
 }
 
+
+
 #input {
-    padding: 10px;
-    background-color: #40444b;
-    color: white;
-    border: 5px;
-    align-self: center;
+    border: none;
+    padding: 0 1rem;
+    flex-grow: 1;
+    border-radius: 2rem;
+    margin: 0.25rem;
 }
 
 #input:focus {
@@ -35,7 +32,7 @@ body {
 }
 
 #form > button {
-    background: #4e77ff;
+    background: #333;
     border: none;
     padding: 0 1rem;
     margin: 0.25rem;
@@ -48,20 +45,79 @@ body {
     list-style-type: none;
     margin: 0;
     padding: 0;
-   
 }
 
 #messages > li {
     padding: 0.5rem 1rem;
-    margin-bottom: 3%;
-    margin-top: 3%;
-    height: 100%;
-    background-color:rgb(132, 132, 132);
-    overflow-y: scroll;
 }
 
 #messages > li:nth-child(odd) {
     background: #efefef;
-    margin-bottom: 3%;
-    margin-top: 3%;
 }
+
+
+h1 {
+    font-size: 1.5em;
+    margin-top: .5em;
+}
+
+.connecter {
+    color: green;
+}
+
+a:link {
+   text-decoration: none;
+}
+
+#users a:hover {
+    font-size: 120%;
+}
+
+@media (min-width: 1025px) {
+    .navbar {
+        display: none;
+    }
+}
+
+@media (max-width: 1025px) {
+    .userMonitor {
+        display: none;
+    }
+}
+
+.message-heading {
+    background: #0d6efd;
+    text-align: center;
+    border-radius: 0.5em;
+}
+
+/* Largeur de la div messages... */
+.col-md-14 {
+    width: 100vw;
+}
+
+.collapse {
+    display: block;
+}
+
+@media (max-width: 767px) {
+    .c-msg {
+        margin: 5em auto;
+        width: 100%;
+    }
+
+
+}
+
+@media (min-width: 768px) {
+    .c-msg {
+        margin-top: 3em;
+        margin-left: 9.5em;
+    }
+
+    #form {
+        padding: 0.25rem 0.25rem 0.25rem 15rem;
+    }
+
+}
+

@@ -86,9 +86,20 @@ app.get('/style.css', (req, res) => {
     res.sendFile(path.join(__dirname, '..', '/css/style.css'));
 });
 
+// Route page Ultimate-Sidebar-Menu-BS5.js
+app.get('/Ultimate-Sidebar-Menu-BS5.js', (req, res) => {
+    res.sendFile(path.join(__dirname, '..', '/js/Ultimate-Sidebar-Menu-BS5.js'));
+});
+
+// Route page Ultimate-Sidebar-Menu-BS5.css
+app.get('/Ultimate-Sidebar-Menu-BS5.css', (req, res) => {
+    res.sendFile(path.join(__dirname, '..', '/css/Ultimate-Sidebar-Menu-BS5.css'));
+});
+
+
 // Route vers 403.css
 app.get('/403.css', (req, res) => {
-    res.sendFile(path.join(__dirname, '..', 'css/403.css'));
+    res.sendFile(path.join(__dirname, '..', '/css/403.css'));
 });
 
 // Gestionnaire de connexion au salon
@@ -105,7 +116,7 @@ app.post('/login', async(req,res)=>{
         req.session.loggedin = true;
         res.redirect('/salon');
     }else{
-        res.send("Erreur, mauvais identifiants !");
+        res.send("Erreur, mauvais identifiants ! Ressayez SVP");
     }
 });
 
@@ -147,26 +158,293 @@ app.post('/forgotPasswd', async(req, res)=>{
 
     res.redirect('/');
 });
+/**
+ * Fonction qui va générer une couleur aléatoire pour chaque utilisateur
+ */
+function generateColor() {
+    return "#" + (Math.floor(Math.random() * 0xFFFFFF)).toString(16);
+}
+
 // Port d'écoute
 server.listen(PORT, () => {
     console.log('Serveur démarré sur le port :'+PORT);
 });
 
-io.on('connection',(socket)=>{
-    //Saisie du pseudo de l'utilisateur
-    socket.on('set-pseudo',(pseudo)=>{
-        console.log(pseudo + " Vient de se connecter à "+new Date());
-        socket.nickname = pseudo;
-});
-    socket.on('emission_message',(message)=>{
-        socket.emit('reception_message', socket.nickname + ' : ' + message);
-        io.to('room1').emit('message', message);
+/**
+ *  Fonction qui va générer des logs automatiquement
+ * @param message
+ * @param type
+ * @constructor
+ */
+function Logger(message, type) {
+    let date = new Date();
+    let heure = date.getHours();
+    let minutes = date.getMinutes();
+    let secondes = date.getSeconds();
 
-        console.log(message);
+    if (!fs.existsSync(pathLog)) { fs.mkdirSync(pathLog); }
+
+    switch (type) {
+        case "connection":
+            fs.appendFile (pathLog + "/" + date.getDate () + "-" + (date.getMonth () + 1) + "-" + date.getFullYear () + ".log", "[CONNEXION] " + heure + ":" + minutes + ":" + secondes + " : " + message + " \r \n", function (err) {
+                if (err) throw err;
+            });
+            break;
+
+        case "message":
+            fs.appendFile (pathLog + "/" + date.getDate () + "-" + (date.getMonth () + 1) + "-" + date.getFullYear () + ".log", "[MESSAGE] " + heure + ":" + minutes + ":" + secondes + " : " + message + " \r \n", function (err) {
+                if (err) throw err;
+            });
+            break;
+
+        case "disconnection":
+            fs.appendFile (pathLog + "/" + date.getDate () + "-" + (date.getMonth () + 1) + "-" + date.getFullYear () + ".log", "[DECONNEXION] " + heure + ":" + minutes + ":" + secondes + " : " + message + " \r \n", function (err) {
+                if (err) throw err;
+            });
+            break;
+
+        case "block":
+            fs.appendFile (pathLog + "/" + date.getDate () + "-" + (date.getMonth () + 1) + "-" + date.getFullYear () + ".log", "[BLOQUAGE] " + heure + ":" + minutes + ":" + secondes + " : " + message + " \r \n", function (err) {
+                if (err) throw err;
+            });
+            break;
+
+        case 'error':
+            // en rouge
+            fs.appendFile (pathLog + "/" + date.getDate () + "-" + (date.getMonth () + 1) + "-" + date.getFullYear () + ".log", "[ERREUR] " + heure + ":" + minutes + ":" + secondes + " : " + message + " \r \n", function (err) {
+                if (err) throw err;
+            });
+            break;
+    }
+}
+/**
+ * Lancement du gestionnaire d'événements, qui va gérer notre Socket
+ */
+io.on('connection', (socket) => {
+    if(infosUtilisateur === undefined) {
+        new Logger("Un utilisateur non connecté a tenté de se connecter", "error");
+        socket.disconnect();
+        return;
+    }
+
+    socket.pseudo = "<b style=\"color:" + generateColor() + "\">" + infosUtilisateur.pseudo + "</b>";
+    const pseudoLog = infosUtilisateur.pseudo;
+
+    // LOG : On envoie un message de bienvenue à l'utilisateur
+    new Logger(`${pseudoLog} vient de se connecter à ${new Date()}`, "connection");
+
+    // Récupération de la liste des utilisateurs (Sockets) connectés
+    io.fetchSockets().then((room) => {
+
+        // On crée un premier utilisateur nommé salon, retournant l'id salon a chaque fois
+        let userConnecter = [{id_users: 'general', pseudo_client: 'Salon'}];
+
+        // On va donc ajouter à chaque connexion les utilisateurs dans le tableau
+        room.forEach((item) => {
+            userConnecter.push({
+                id_users: item.id, pseudo_client: item.pseudo
+            });
+             console.log(userConnecter) // Affiche la liste des utilisateurs connectés
+        });
+        io.emit ('get-pseudo', userConnecter);
     });
-     
-    socket.on('disconnect', ()=>{
-        console.log(pseudo + " has disconnected!");
+
+
+    /*
+     Socket pour l'émission/reception des messages et socket id - SERVER.js
+    */
+
+    // On recupere ausssi les images
+    socket.on ('emission_message',
+        (message, image, id) => {
+
+            // LOG DE MESSAGES
+            new Logger (`${pseudoLog} à écrit : ${message},  émetteur : ${socket.id},  destinataire : ${id}`, "message");
+            const laDate = new Date ();
+
+            // [OPTIONAL] Pour enregistrer les messages dans le serveur
+            if (config["save-images"].value === true && image !== null) {
+                const splitted = image.split (';base64,');
+                const format = splitted[0].split ('/')[1];
+                fs.writeFileSync (config["save-images"].path + laDate.getTime () + '_' + pseudoLog + '.' + format, splitted[1], 'base64');
+            }
+
+            // Mis en format JSON
+            let unMessage = {
+                emet_id: socket.id,
+                dest_ID: id,
+                pseudo: socket.pseudo,
+                msg: message,
+                image: image,
+                date: laDate.toLocaleDateString () + ' - ' + laDate.toLocaleTimeString (),
+                recu: false
+            };
+
+            /*
+             On envoie le message aux bonnes personnes, dans le salon général tout le monde le reçois,
+             mais pour les messages privés seul l'émetteur et le destinataire reçoivent le message.
+            */
+            if (id === "general") {
+                io.emit ('reception_message', unMessage);
+
+            } else {
+                io.to (id).to (socket.id).emit ('reception_message', unMessage);
+            }
+
+        });
+
+    /*
+     Socket pour le bloquage des messages - SERVER.js
+    */
+    socket.on("bloquer", (id_user, id_bloquer) => {
+        new Logger(`${pseudoLog} à bloqué ${id_bloquer}`, "block");
+
+        io.to(id_bloquer).emit("est_bloquer", socket.id);
+
+        io.fetchSockets().then((room) => {
+            // On crée un premier utilisateur nommé salon, retournant l'id 'general' a chaque fois
+            let userConnecter = [{id_users: 'general', pseudo_client: 'Salon'}];
+
+            // À chaque déconnexion les utilisateurs dans le tableau
+            room.forEach((item) => {
+                if (socket.id !== item.id || id_user !== item.id || id_bloquer !== item.id || socket.id === id_bloquer) {
+                    userConnecter.push ({
+                        id_users: item.id, pseudo_client: socket.pseudo
+                    });
+                }
+            });
+
+            io.emit('get-pseudo', userConnecter);
+        });
     });
-   
+
+    /*
+     Socket pour informer la déconnexion
+    */
+    socket.on('disconnect', async () => {
+        // LOG DE DÉCONNEXION
+        let pseudoDisconnected // Variable créée pour éviter erreur de code
+
+        // On récupère le pseudo de l'utilisateur qui se déconnecte
+        socket._onclose( pseudoDisconnected = pseudoLog);
+
+        // LOG DE DÉCONNEXION
+        new Logger(`${pseudoDisconnected} vient de se déconnecter`, "disconnection");
+
+        // PERMET D'AFFICHER LES PERSONNES CONNECTÉS EN LOG
+        //sockets.forEach(element => Logger(element.pseudo, "connection")); *
+
+        // Récupération de la liste des utilisateurs (Sockets) connectés
+        io.fetchSockets().then((room) => {
+            // On crée un premier utilisateur nommé salon, retournant l'id 'general' a chaque fois
+            let userConnecter = [{id_users: 'general', pseudo_client: 'Salon'}];
+
+            // À chaque déconnexion les utilisateurs dans le tableau
+            room.forEach((item) => {
+                userConnecter.push({
+                    id_users: item.id, pseudo_client: socket.pseudo
+                });
+            });
+            io.emit('get-pseudo', userConnecter);
+        });
+
+         /*
+     Socket pour l'émission/reception des messages et socket id - SERVER.js
+    */
+
+    // On recupere ausssi les images
+    socket.on ('emission_message',
+        (message, image, id) => {
+
+            // LOG DE MESSAGES
+            new Logger (`${pseudoLog} à écrit : ${message},  émetteur : ${socket.id},  destinataire : ${id}`, "message");
+            const laDate = new Date ();
+
+            // [OPTIONAL] Pour enregistrer les messages dans le serveur
+            if (config["save-images"].value === true && image !== null) {
+                const splitted = image.split (';base64,');
+                const format = splitted[0].split ('/')[1];
+                fs.writeFileSync (config["save-images"].path + laDate.getTime () + '_' + pseudoLog + '.' + format, splitted[1], 'base64');
+            }
+
+            // Mis en format JSON
+            let unMessage = {
+                emet_id: socket.id,
+                dest_ID: id,
+                pseudo: socket.pseudo,
+                msg: message,
+                image: image,
+                date: laDate.toLocaleDateString () + ' - ' + laDate.toLocaleTimeString (),
+                recu: false
+            };
+
+            /*
+             On envoie le message aux bonnes personnes, dans le salon général tout le monde le reçois,
+             mais pour les messages privés seul l'émetteur et le destinataire reçoivent le message.
+            */
+            if (id === "general") {
+                io.emit ('reception_message', unMessage);
+
+            } else {
+                io.to (id).to (socket.id).emit ('reception_message', unMessage);
+            }
+
+        });
+
+    /*
+     Socket pour le bloquage des messages - SERVER.js
+    */
+    socket.on("bloquer", (id_user, id_bloquer) => {
+        new Logger(`${pseudoLog} à bloqué ${id_bloquer}`, "block");
+
+        io.to(id_bloquer).emit("est_bloquer", socket.id);
+
+        io.fetchSockets().then((room) => {
+            // On crée un premier utilisateur nommé salon, retournant l'id 'general' a chaque fois
+            let userConnecter = [{id_users: 'general', pseudo_client: 'Salon'}];
+
+            // À chaque déconnexion les utilisateurs dans le tableau
+            room.forEach((item) => {
+                if (socket.id !== item.id || id_user !== item.id || id_bloquer !== item.id || socket.id === id_bloquer) {
+                    userConnecter.push ({
+                        id_users: item.id, pseudo_client: socket.pseudo
+                    });
+                }
+            });
+
+            io.emit('get-pseudo', userConnecter);
+        });
+    });
+
+    /*
+     Socket pour informer la déconnexion
+    */
+    socket.on('disconnect', async () => {
+        // LOG DE DÉCONNEXION
+        let pseudoDisconnected // Variable créée pour éviter erreur de code
+
+        // On récupère le pseudo de l'utilisateur qui se déconnecte
+        socket._onclose( pseudoDisconnected = pseudoLog);
+
+        // LOG DE DÉCONNEXION
+        new Logger(`${pseudoDisconnected} vient de se déconnecter`, "disconnection");
+
+        // PERMET D'AFFICHER LES PERSONNES CONNECTÉS EN LOG
+        //sockets.forEach(element => Logger(element.pseudo, "connection")); *
+
+        // Récupération de la liste des utilisateurs (Sockets) connectés
+        io.fetchSockets().then((room) => {
+            // On crée un premier utilisateur nommé salon, retournant l'id 'general' a chaque fois
+            let userConnecter = [{id_users: 'general', pseudo_client: 'Salon'}];
+
+            // À chaque déconnexion les utilisateurs dans le tableau
+            room.forEach((item) => {
+                userConnecter.push({
+                    id_users: item.id, pseudo_client: socket.pseudo
+                });
+            });
+            io.emit('get-pseudo', userConnecter);
+        });
+    });
+    });
 });

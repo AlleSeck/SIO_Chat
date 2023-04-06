@@ -1,23 +1,62 @@
 <!DOCTYPE html>
-<html>
-    <head>
-        <title>SIO CHAT</title>
-        <link rel="stylesheet" href="css/style.css">
-    </head>
-    <body>
-        <aside>
-            <ul id="tabs">
-                <li class="active" data-room="general">Général</li>
-            </ul>
-        </aside>
-    <main>
-        <ul id="messages"></ul>
-        <form id="form" action="">
-            <input id="input" autocomplete="off"></input>
-            <button id="button">Send</button>
-        </form>
-    </main>
-        <script src="socket.io/socket.io.js"></script>
-        <script src="js/client.js"></script>
-    </body>
+<html lang="fr">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
+    <title>SIO CHAT</title>
+    <link rel="stylesheet" href="/style.css">
+    <link rel="stylesheet" href="/Ultimate-Sidebar-Menu-BS5.css">
+
+</head>
+
+<body>
+<!-- Menu de navigation fixé au top -->
+<nav class="navbar navbar-light navbar-expand-lg bg-light fixed-top">
+    <a class="navbar-brand">SIO CHAT</a>
+    <!-- Permet d'afficher le nom des users connecté -->
+    <div><a class="btn btn-primary btn-customized open-menu" role="button"><i class="fa fa-navicon"></i> <span
+            class="navbar-toggler-icon"></span></a>
+        <div class="sidebar active" id="sidebar">
+
+            <div class="brand">
+                <a class="navbar-brand">Utilisateurs Connectés</a>
+                <div class="text-center" id="deconnexion"><a onclick="disconnect();">Se déconnecter</a></div>
+            </div>
+            <nav class="navbar navbar-dark navbar-expand">
+                <div class="container-fluid">
+                    <ul class="navbar-nav flex-column me-auto connecter" id="users"></ul>
+                </div>
+            </nav>
+        </div>
+        <div class="overlay"></div>
+    </div>
+</nav>
+
+<!-- formulaire de prénom-->
+<form id="form" action="">
+    <input id="input" autocomplete="off" placeholder="Écrivez votre message juste ici... ">
+    <input accept="image/*" id="file" name="file" type="file">
+    <button id="button">Send</button>
+</form>
+
+<!-- Container -->
+<div class="container c-msg">
+    <div class="row">
+        <!-- Colonne affichant les messages -->
+        <div class="col-md-14 col-xl-10 offset-xl-1">
+            <h1 class="message-heading">Messages</h1>
+            <ul class="list-unstyled" id="messages"></ul>
+        </div>
+    </div>
+</div>
+
+<!-- Initialisation des scripts-->
+<script src="/socket.io/socket.io.js"></script>
+<script src="/js/bootstrap.min.js"></script>
+<script src="/js/client.js"></script>
+<script src="/js/server.js"></script>
+<script src="/js/Ultimate-Sidebar-Menu-BS5.js"></script>
+</body>
+
 </html>
